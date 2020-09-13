@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"
+    />
     <style>
       #map {
         bottom: 0;
@@ -22,11 +25,12 @@
 
     <script>
       // initalize leaflet map
-      var map = L.map('map').setView([0, 0], 5);
+      var map = L.map("map").setView([0, 0], 5);
 
       // add OpenStreetMap basemap
-      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      L.tileLayer("http://{s}.tile.osm.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
       // originally from https://globalwindatlas.info/downloads/gis-files/
@@ -34,34 +38,40 @@
       var url_to_geotiff_file = "ecsnew_current_20200618.tiff";
 
       fetch(url_to_geotiff_file)
-        .then(response => response.arrayBuffer())
-        .then(arrayBuffer => {
-          parseGeoraster(arrayBuffer).then(georaster => {
+        .then((response) => response.arrayBuffer())
+        .then((arrayBuffer) => {
+          parseGeoraster(arrayBuffer).then((georaster) => {
+            // 0
             const min = georaster.mins[0];
+            // 3.0252280235290527
             const max = georaster.maxs[0];
+            // min - max 的值计算出范围，我理解可以将 范围设置为色标的长度
+            // eg: 将 range 设置为 5
             const range = georaster.ranges[0];
+            // const range = 5;
 
             // available color scales can be found by running console.log(chroma.brewer);
+            // 可用的颜色刻度可以通过运行console.log(chroma.brewer)找到;
             console.log(chroma.brewer);
             var scale = chroma.scale("Viridis");
 
             var layer = new GeoRasterLayer({
-                georaster: georaster,
-                opacity: 0.7,
-                pixelValuesToColorFn: function(pixelValues) {
-                  var pixelValue = pixelValues[0]; // there's just one band in this raster
+              georaster: georaster,
+              opacity: 0.7,
+              pixelValuesToColorFn: function (pixelValues) {
+                var pixelValue = pixelValues[0]; // there's just one band in this raster
 
-                  // if there's zero wind, don't return a color
-                  if (pixelValue === 0) return null;
+                // if there's zero wind, don't return a color
+                if (pixelValue === 0) return null;
 
-                  // scale to 0 - 1 used by chroma
-                  var scaledPixelValue = (pixelValue - min) / range;
+                // scale to 0 - 1 used by chroma
+                var scaledPixelValue = (pixelValue - min) / range;
 
-                  var color = scale(scaledPixelValue).hex();
+                var color = scale(scaledPixelValue).hex();
 
-                  return color;
-                },
-                resolution: 256
+                return color;
+              },
+              resolution: 256,
             });
             console.log("layer:", layer);
             layer.addTo(map);
